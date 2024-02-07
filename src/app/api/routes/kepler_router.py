@@ -1,18 +1,22 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+import numpy as np
 
 router = APIRouter()
 
 
 class StateScheme(BaseModel):
-    point_x: float
-    point_y: float
-    velocity_x: float
-    velocity_y: float
+    position_1: list[float] = Field(..., min_length=2, max_length=2)
+    position_2: list[float] = Field(..., min_length=2, max_length=2)
+    velocity_1: list[float] = Field(..., min_length=2, max_length=2)
+    velocity_2: list[float] = Field(..., min_length=2, max_length=2)
+    mass_1: float
+    mass_2: float
 
 
 @router.post('/calc_state')
 async def calc_state(prev_state: StateScheme):
+    # TOFIX:
     point_x = prev_state.point_x + 1.2
     point_y = prev_state.point_y
     velocity_x = prev_state.velocity_x
