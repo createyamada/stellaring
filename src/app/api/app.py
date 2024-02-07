@@ -8,7 +8,7 @@ def get_application():
     # インスタンスを生成
     app = FastAPI(title="Stellaring", version="1.0.0")
 
-    #　ミドルウェア設定
+    # ミドルウェア設定
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -21,6 +21,5 @@ def get_application():
 
     return app
 
+
 app = get_application()
-
-
