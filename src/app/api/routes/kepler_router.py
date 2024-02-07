@@ -13,7 +13,7 @@ class StateScheme(BaseModel):
 
 @router.post('/calc_state')
 async def calc_state(prev_state: StateScheme):
-    point_x = prev_state.point_x + 1.2
+    position_1 = prev_state.point_x + 1.2
     point_y = prev_state.point_y
     velocity_x = prev_state.velocity_x
     velocity_y = prev_state.velocity_y
