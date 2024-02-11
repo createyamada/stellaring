@@ -1,0 +1,4 @@
+# 定数設定
+
+# 重力加速度
+GRAVITATIONAL_ACCELERATION = 9.80665
