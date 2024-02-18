@@ -12,58 +12,62 @@ router = APIRouter()
 # def index(speed: int , angle: float , type: int):
 def index():
 
-    speed = 90
+    speed = 100
     angle = 45.0
     position = 0
-    type = 1
+    step = 0.1
+    type = 2
+    num_steps = 100
     theta_rad = np.radians(angle)
     vx = speed * np.cos(theta_rad)
     vy = speed * np.sin(theta_rad)
 
     print(speed)
     print(angle)
+    print(step)
+    print(num_steps)
     print(type)
 
     sol = None
     x = None
     y = None
 
-    # 時間の設定
-    total_time = 2 * speed * np.sin(np.radians(angle)) / const.GRAVITATIONAL_ACCELERATION
-    num_steps = 100
+    result = []
+
+    #  取得する配列（時間間隔）を作成
+    dt = np.arange(0,num_steps,step) 
+    print("len(dt)")
+    print(len(dt))
+
+
 
     if type == 0:
         # 解析解の場合
-
-        # 時間の範囲を設定
-        dt = np.linspace(0, total_time, num_steps)
-
+        result = [0] * len(dt)
         # 位置の解析解を計算
-        x = vx * dt
-        y = position + vy * dt - 0.5 * g * dt**2
-
-        return x, y
+        for i in range(len(dt)-1):
+            print(i)
+            result[i] = {
+                "x":vx * dt[i],
+                "y":position + vy * dt[i] - 0.5 * const.GRAVITATIONAL_ACCELERATION * dt[i]**2
+            }
+            print(result[i])
+            if (result[i]["y"] < 0):
+                break
 
     else: 
         # 数値解の場合
-        # 時間経過
-        dt = total_time / num_steps
         if type == 1:
             # オイラー法の場合
-            x, y = numerical_solution_euler(None, func_v, vx, vy, dt, num_steps)
+            result = numerical_solution_euler(func_p, func_v, vx, vy, dt, num_steps)
         elif type == 2:
             # ルンゲクッタ法の場合
-            x, y = numerical_solution_rungekutta(func_p, func_v, vx, vy, dt, num_steps)
+            result = numerical_solution_rungekutta(func_p, func_v, vx, vy, dt, num_steps)
 
 
 
 
-    # print(sol)      
-    print(x)      
-    print(y)   
-    # result = {"x":x,""y":y}   
-    # return result
-    return {"Hello":"World"}
+    return result
 
 
 def numerical_solution_euler(calc_p, calc_v, vx, vy, dt, num_steps):
@@ -84,25 +88,39 @@ def numerical_solution_euler(calc_p, calc_v, vx, vy, dt, num_steps):
     """
 
     # 初期条件
-    t = np.linspace(0, num_steps * dt, num_steps + 1)
+    # t = np.linspace(0, num_steps * dt, num_steps + 1)
 
     ini = 0
 
-    h = t[1] - t[0]
-    x = np.zeros_like(t, dtype=float)
-    y = np.zeros_like(t, dtype=float)
-    x[0] = ini
-    y[0] = ini
+    h = dt[1] - dt[0]
+    # x = np.zeros_like(dt, dtype=float)
+    # y = np.zeros_like(dt, dtype=float)
+    x = [0] * len(dt)
+    y = [0] * len(dt)
+
+    x[0] = 0
+    y[0] = 0
+
+
+
+    result = [0] * len(dt)
+
+    result[0] = {
+        "x":0,
+        "y":0
+    }
 
     # オイラー法の計算
-    for i in range(len(x) - 1):
-
-    # x[1:] = x[:-1] + h * x(t[:-1], x[:-1])
-    # y[1:] = y[:-1] + h * y(t[:-1], y[:-1])
-        x[i + 1] = x[i] + (calc_v(vx) * t[i])
-        y[i + 1] = y[i] + (calc_v(vy,t[i]) * t[i])
-
-    return x, y
+    for i in range(len(dt) - 1):
+        x[i + 1] = calc_p(x[i],calc_v(vx),h)
+        y[i + 1] = calc_p(y[i],calc_v(vy,dt[i]),h)
+        result[i+1] = {
+            "x":x[i+1],
+            "y":y[i+1]
+        }
+        if (y[i+1] < 0):
+            break
+    return result
 
 
 def numerical_solution_rungekutta(calc_p, calc_v, vx, vy, dt, num_steps):
@@ -124,29 +142,40 @@ def numerical_solution_rungekutta(calc_p, calc_v, vx, vy, dt, num_steps):
 
     ini = 0
     # 初期条件
-    t = np.linspace(0, num_steps * dt, num_steps + 1)
-    h = t[1] - t[0]
-    x = np.zeros_like(t, dtype=float)
-    y = np.zeros_like(t, dtype=float)
-    y[0] = ini
-    x[0] = ini
-
+    # t = np.linspace(0, num_steps * dt, num_steps + 1)
+    h = dt[1] - dt[0]
+    # x = np.zeros_like(dt, dtype=float)
+    # y = np.zeros_like(dt, dtype=float)
+    x = [0] * len(dt)
+    y = [0] * len(dt)
+    y[0] = 0
+    x[0] = 0
+    result = [0] * len(dt)
+    result[0] = {
+        "x":0,
+        "y":0
+    }
 
     # ルンゲ-クッタ法による更新
-    for i in range(len(x) - 1):
-        k1_x = calc_v(vx)
-        k2_x = calc_p(x[i] + k1_x/2) * t[i]
-        k3_x = calc_p(x[i] + k2_x/2) * t[i]
-        k4_x = calc_p(x[i] + k3_x) * t[i]
+    for i in range(len(dt) - 1):
+        # print(i)
+        # k1_x = calc_v(vx)
+        k1_x = calc_p(x[i],calc_v(vx),h)
+        k2_x = calc_p(x[i] + k1_x/2,calc_v(vx),h)
+        k3_x = calc_p(x[i] + k2_x/2,calc_v(vx),h)
+        k4_x = calc_p(x[i] + k3_x,calc_v(vx),h)
 
-        k1_y = calc_v(vy, t[i])
-        k2_y = calc_p(y[i] + k1_y/2) * t[i]
-        k3_y = calc_p(y[i] + k2_y/2) * t[i]
-        k4_y = calc_p(y[i] + k3_y) * t[i]
+        k1_y = calc_p(y[i],calc_v(vy,dt[i]),h)
+        k2_y = calc_p(y[i] + k1_y/2,calc_v(vy,dt[i]),h)
+        k3_y = calc_p(y[i] + k2_y/2,calc_v(vy,dt[i]),h)
+        k4_y = calc_p(y[i] + k3_y,calc_v(vy,dt[i]),h)
 
         x[i + 1] = x[i] + (k1_x + 2*k2_x + 2*k3_x + k4_x) / 6
         y[i + 1] = y[i] + (k1_y + 2*k2_y + 2*k3_y + k4_y) / 6
-
+        result[i+1] = {
+            "x":x[i] + (k1_x + 2*k2_x + 2*k3_x + k4_x) / 6,
+            "y":y[i] + (k1_y + 2*k2_y + 2*k3_y + k4_y) / 6
+        }
     return x, y
 
 
@@ -168,7 +197,7 @@ def func_v(v, t=None):
 
     return result
 
-def func_p(p):
+def func_p(p,v,t):
     """
     数値計算用位置ベクトル計算
 
@@ -180,7 +209,7 @@ def func_p(p):
     - return: 位置ベクトル
     """
 
-    return (-const.GRAVITATIONAL_ACCELERATION * p)
-
+    # return (-const.GRAVITATIONAL_ACCELERATION * p)
+    return p + (v * t)
 
 
