@@ -156,27 +156,39 @@ def numerical_solution_rungekutta(calc_p, calc_v, vx, vy, dt, num_steps):
         "y":0
     }
 
+    print(dt)
     # ルンゲ-クッタ法による更新
     for i in range(len(dt) - 1):
         # print(i)
-        # k1_x = calc_v(vx)
         k1_x = calc_p(x[i],calc_v(vx),h)
-        k2_x = calc_p(x[i] + k1_x/2,calc_v(vx),h)
-        k3_x = calc_p(x[i] + k2_x/2,calc_v(vx),h)
-        k4_x = calc_p(x[i] + k3_x,calc_v(vx),h)
+        k2_x = calc_p(x[i] + k1_x/2,calc_v(vx),dt[i+1])
+        k3_x = calc_p(x[i] + k2_x/2,calc_v(vx),dt[i+1])
+        k4_x = calc_p(x[i] + k3_x,calc_v(vx),dt[i+1])
+        print('k1_x')
+        print(k1_x)
+        print('k2_x')
+        print(k2_x)
+        print('k3_x')
+        print(k3_x)
+        print('k4_x')
+        print(k4_x)
 
         k1_y = calc_p(y[i],calc_v(vy,dt[i]),h)
-        k2_y = calc_p(y[i] + k1_y/2,calc_v(vy,dt[i]),h)
-        k3_y = calc_p(y[i] + k2_y/2,calc_v(vy,dt[i]),h)
-        k4_y = calc_p(y[i] + k3_y,calc_v(vy,dt[i]),h)
+        k2_y = calc_p(y[i] + k1_y/2,calc_v(vy,dt[i]),dt[i+1])
+        k3_y = calc_p(y[i] + k2_y/2,calc_v(vy,dt[i]),dt[i+1])
+        k4_y = calc_p(y[i] + k3_y,calc_v(vy,dt[i]),dt[i+1])
 
-        x[i + 1] = x[i] + (k1_x + 2*k2_x + 2*k3_x + k4_x) / 6
-        y[i + 1] = y[i] + (k1_y + 2*k2_y + 2*k3_y + k4_y) / 6
+        x[i + 1] = x[i] + (k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6
+        y[i + 1] = y[i] + (k1_y + 2 * k2_y + 2 * k3_y + k4_y) / 6
+        print('y[i+1]')
+        print(round(y[i+1],3) )
         result[i+1] = {
-            "x":x[i] + (k1_x + 2*k2_x + 2*k3_x + k4_x) / 6,
-            "y":y[i] + (k1_y + 2*k2_y + 2*k3_y + k4_y) / 6
+            "x":x[i + 1],
+            "y":y[i + 1]
         }
-    return x, y
+        if (y[i+1] < 0 ):
+            break
+    return result
 
 
 def func_v(v, t=None):
@@ -190,12 +202,13 @@ def func_v(v, t=None):
     Returns:
     - return: 速度ベクトル
     """
-    if(t):
-        result = v - (const.GRAVITATIONAL_ACCELERATION * t)
+    if t is None:
+        return v
     else:
-        result = v
+        return v - (const.GRAVITATIONAL_ACCELERATION * t)
 
-    return result
+
+    # return result
 
 def func_p(p,v,t):
     """
@@ -211,5 +224,20 @@ def func_p(p,v,t):
 
     # return (-const.GRAVITATIONAL_ACCELERATION * p)
     return p + (v * t)
+
+def func_p_runge(p,t):
+    """
+    数値計算用位置ベクトル計算
+
+    Parameters:
+    - v: 位置ベクトル
+    - t: 時間
+
+    Returns:
+    - return: 位置ベクトル
+    """
+
+    return (-const.GRAVITATIONAL_ACCELERATION * p) * t
+    # return p + (v * t)
 
 
