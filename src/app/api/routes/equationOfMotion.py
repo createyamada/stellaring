@@ -12,34 +12,22 @@ router = APIRouter()
 # def index(speed: int , angle: float , type: int):
 def index():
 
+    # 初期条件
     speed = 100
     angle = 45.0
     position = 0
     step = 0.1
-    type = 2
+    type = 1
     num_steps = 100
     theta_rad = np.radians(angle)
     vx = speed * np.cos(theta_rad)
     vy = speed * np.sin(theta_rad)
 
-    print(speed)
-    print(angle)
-    print(step)
-    print(num_steps)
-    print(type)
-
-    sol = None
-    x = None
-    y = None
-
+    # 結果格納用配列
     result = []
 
     #  取得する配列（時間間隔）を作成
     dt = np.arange(0,num_steps,step) 
-    print("len(dt)")
-    print(len(dt))
-
-
 
     if type == 0:
         # 解析解の場合
@@ -56,13 +44,14 @@ def index():
                 break
 
     else: 
+        f = {"x":0,"y":const.GRAVITATIONAL_ACCELERATION}
         # 数値解の場合
         if type == 1:
             # オイラー法の場合
-            result = numerical_solution_euler(func_p, func_v, vx, vy, dt, num_steps)
+            result = numerical_solution_euler(f, vx, vy, dt)
         elif type == 2:
             # ルンゲクッタ法の場合
-            result = numerical_solution_rungekutta(func_p, func_v, vx, vy, dt, num_steps)
+            result = numerical_solution_rungekutta(f, vx, vy, dt)
 
 
 
@@ -70,174 +59,127 @@ def index():
     return result
 
 
-def numerical_solution_euler(calc_p, calc_v, vx, vy, dt, num_steps):
-
+def numerical_solution_euler(f, vx, vy, dt):
     """
     オイラー法による常微分方程式の数値解法
 
     Parameters:
-    - calc_p:function 時間変化に応じた位置計算
-    - calc_v:function 時間変化に応じた速度計算
-    - v0:int 初期速度
-    - dt: 刻み幅
-    - num_steps: 時刻のリスト数
+    - f:array 速度を更新する力[vxの力,vyの力]
+    - vx: x軸初速度
+    - vy: y軸初速度
+    - dt:array 刻み幅リスト
 
     Returns:
-    - result_x: 対応するx数値解のリスト
-    - result_y: 対応するy数値解のリスト
+    - result: x,y軸の位置ベクトルのリスト[{"x":0,"y":0},...]
     """
-
+    print(f)
+    print(f["x"])
     # 初期条件
-    # t = np.linspace(0, num_steps * dt, num_steps + 1)
-
-    ini = 0
-
+    # 刻み幅
     h = dt[1] - dt[0]
-    # x = np.zeros_like(dt, dtype=float)
-    # y = np.zeros_like(dt, dtype=float)
-    x = [0] * len(dt)
-    y = [0] * len(dt)
-
-    x[0] = 0
-    y[0] = 0
-
-
-
+    # 初期位置
+    # 結果格納用配列
     result = [0] * len(dt)
-
     result[0] = {
         "x":0,
         "y":0
     }
 
+
+
+    # こいつは多分いらない
+    x = [0] * len(dt)
+    y = [0] * len(dt)
+    y[0] = 0
+    x[0] = 0
+
     # オイラー法の計算
     for i in range(len(dt) - 1):
-        x[i + 1] = calc_p(x[i],calc_v(vx),h)
-        y[i + 1] = calc_p(y[i],calc_v(vy,dt[i]),h)
+        x[i + 1] = x[i] + vx
+        y[i + 1] = y[i] + (vy * h)
         result[i+1] = {
             "x":x[i+1],
             "y":y[i+1]
         }
+        # 速度を更新する
+        vx = vx
+        vy -= const.GRAVITATIONAL_ACCELERATION * h
         if (y[i+1] < 0):
             break
     return result
 
 
-def numerical_solution_rungekutta(calc_p, calc_v, vx, vy, dt, num_steps):
+def numerical_solution_rungekutta(f, vx, vy, dt):
 
     """
     ルンゲクッタ法による常微分方程式の数値解法
 
     Parameters:
-    - calc_p:function 時間変化に応じた位置計算
-    - calc_v:function 時間変化に応じた速度計算
-    - v0: 初期速度
-    - dt: 刻み幅
-    - num_steps: 時刻のリスト数
+    - f:array 速度を更新する力[vxの力,vyの力]
+    - vx: x軸初速度
+    - vy: y軸初速度
+    - dt:array 刻み幅リスト
 
     Returns:
-    - result_x: 対応するx数値解のリスト
-    - result_y: 対応するy数値解のリスト
+    - result: x,y軸の位置ベクトルのリスト[{"x":0,"y":0},...]
     """
-
-    ini = 0
     # 初期条件
-    # t = np.linspace(0, num_steps * dt, num_steps + 1)
+    # 刻み幅
     h = dt[1] - dt[0]
-    # x = np.zeros_like(dt, dtype=float)
-    # y = np.zeros_like(dt, dtype=float)
-    x = [0] * len(dt)
-    y = [0] * len(dt)
-    y[0] = 0
-    x[0] = 0
+    # 初期位置
+    # 結果格納用配列
     result = [0] * len(dt)
     result[0] = {
         "x":0,
         "y":0
     }
 
-    print(dt)
+
+
+    # こいつは多分いらない
+    x = [0] * len(dt)
+    y = [0] * len(dt)
+    y[0] = 0
+    x[0] = 0
+    
+
     # ルンゲ-クッタ法による更新
     for i in range(len(dt) - 1):
-        # print(i)
-        k1_x = calc_p(x[i],calc_v(vx),h)
-        k2_x = calc_p(x[i] + k1_x/2,calc_v(vx),dt[i+1])
-        k3_x = calc_p(x[i] + k2_x/2,calc_v(vx),dt[i+1])
-        k4_x = calc_p(x[i] + k3_x,calc_v(vx),dt[i+1])
-        print('k1_x')
-        print(k1_x)
-        print('k2_x')
-        print(k2_x)
-        print('k3_x')
-        print(k3_x)
-        print('k4_x')
-        print(k4_x)
+        k1_x = vx
+        k2_x = vx + h / 2 * k1_x
+        k3_x = vx + h / 2 * k2_x 
+        k4_x = vx + h * k3_x
 
-        k1_y = calc_p(y[i],calc_v(vy,dt[i]),h)
-        k2_y = calc_p(y[i] + k1_y/2,calc_v(vy,dt[i]),dt[i+1])
-        k3_y = calc_p(y[i] + k2_y/2,calc_v(vy,dt[i]),dt[i+1])
-        k4_y = calc_p(y[i] + k3_y,calc_v(vy,dt[i]),dt[i+1])
+        k1_y = vy
+        k2_y = vy + h / 2 * k1_y
+        k3_y = vy + h / 2 * k2_y 
+        k4_y = vy + h * k3_y
 
         x[i + 1] = x[i] + (k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6
         y[i + 1] = y[i] + (k1_y + 2 * k2_y + 2 * k3_y + k4_y) / 6
-        print('y[i+1]')
-        print(round(y[i+1],3) )
         result[i+1] = {
             "x":x[i + 1],
             "y":y[i + 1]
         }
+
+        # 速度を更新する
+        vx = vx
+        vy -= const.GRAVITATIONAL_ACCELERATION * h
         if (y[i+1] < 0 ):
             break
     return result
 
 
-def func_v(v, t=None):
+def test():
     """
-    数値計算用速度ベクトル計算
+    放物運動力
 
     Parameters:
-    - p: 速度ベクトル
-    - t: 時間(default=None)
+    - None
 
     Returns:
-    - return: 速度ベクトル
-    """
-    if t is None:
-        return v
-    else:
-        return v - (const.GRAVITATIONAL_ACCELERATION * t)
-
-
-    # return result
-
-def func_p(p,v,t):
-    """
-    数値計算用位置ベクトル計算
-
-    Parameters:
-    - v: 位置ベクトル
-    - t: 時間
-
-    Returns:
-    - return: 位置ベクトル
+    - return:　力[x軸にかかる力,y軸にかかる力] 
     """
 
-    # return (-const.GRAVITATIONAL_ACCELERATION * p)
-    return p + (v * t)
-
-def func_p_runge(p,t):
-    """
-    数値計算用位置ベクトル計算
-
-    Parameters:
-    - v: 位置ベクトル
-    - t: 時間
-
-    Returns:
-    - return: 位置ベクトル
-    """
-
-    return (-const.GRAVITATIONAL_ACCELERATION * p) * t
-    # return p + (v * t)
-
+    return {"x":0,"y":const.GRAVITATIONAL_ACCELERATION}
 
