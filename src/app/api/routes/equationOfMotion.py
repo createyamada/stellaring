@@ -1,9 +1,10 @@
 from fastapi import APIRouter
-from service import equationOfMotion
-from library import common
-import numpy as np
-from library import const
+# from service import equationOfMotion
 from pydantic import BaseModel
+import numpy as np
+from datetime import timedelta
+from library import common
+from library import const
 
 router = APIRouter()
 
@@ -53,6 +54,8 @@ def index(speed: float , angle: float , step:float , type: int):
 
 
     return result
+
+
 
 
 
