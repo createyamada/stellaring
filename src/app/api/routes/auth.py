@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from datetime import timedelta, datetime
 from pydantic import BaseModel
 from typing import Optional
+import pytz
 
 router = APIRouter()
 
@@ -57,13 +58,15 @@ def authenticate_user(username: str, password: str):
 # トークンをを作成する関数
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
+    japan_tz = pytz.timezone('Asia/Tokyo')
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.utcnow().astimezone(japan_tz) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow().astimezone(japan_tz) + timedelta(minutes=15)
     to_encode.update({"exp":expire})
+    expire = expire.strftime('%Y-%m-%d %H:%M:%S')
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return { "access_token": encoded_jwt , "token_expire" : expire }
 
 # OAuth2パスワードベアラースキームの設定
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -83,7 +86,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(
         data={"sub":user.username}, expires_delta = access_token_expires
     )
-    return {"access_token": access_token , "token_type": "bearer"}
+    return {"token_data": access_token , "token_type": "bearer"}
 
 # プロファイル情報を取得するエンドポイント
 # curl -X GET http://localhost:8888/api/auth/profile -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0dXNlciIsImV4cCI6MTcwOTY5NDA4NH0.9Rhkf0JICKOO7YyjePXWtbTSU7jjuKTwJ4oBPQMb-yE"

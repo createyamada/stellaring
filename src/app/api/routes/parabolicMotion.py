@@ -1,8 +1,6 @@
 from fastapi import APIRouter
-# from service import equationOfMotion
 from pydantic import BaseModel
 import numpy as np
-from datetime import timedelta
 from library import common
 from library import const
 
@@ -57,11 +55,13 @@ def index(speed: float , angle: float , step:float , type: int):
     # 水平到達距離
     maxWidth = (speed ** 2) / const.GRAVITATIONAL_ACCELERATION * (2 * np.sin(theta_rad)) * np.cos(theta_rad)
 
+    print(datas)
     result = {
         "datas" : datas,
         "maxHeight" : maxHeight,
         "maxWidth" : maxWidth,
     } 
+
 
     return result
 
