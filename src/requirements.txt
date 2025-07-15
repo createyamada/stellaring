@@ -4,6 +4,3 @@ python-jose
 python-multipart
 passlib
 numpy
-scipy
-sympy
-pytz

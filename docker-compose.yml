@@ -1,17 +1,3 @@
-# version: "3.7"
-
-# services:
-#   api:
-#     build: .
-#     container_name: "api"
-#     # volumes:
-#     #   - ./app:/app
-#     volumes:
-#       - ./app:/
-#     ports:
-#       - 3000:3000
-
-version: "3.7"
 services:
   server:
     build:

@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 import numpy as np
-from library import common
-from library import const
+from Library import common
+from Library import const
 
 router = APIRouter()
 
