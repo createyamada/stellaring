@@ -15,3 +15,6 @@ RUN set -eux \
 
 # アプリケーションコードをコピー
 COPY ./app ./app
+
+# コンテナ起動時のデフォルトコマンド（uvicorn起動）
+CMD ["uvicorn", "app.app:app", "--host", "0.0.0.0", "--port", "8888"]
