@@ -1,9 +1,9 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
 from pydantic import BaseModel
 import numpy as np
 import math
 
-app = FastAPI()
+router = APIRouter()
 
 # 定数定義
 G = 6.67430e-11  # 万有引力定数
@@ -50,7 +50,7 @@ def compute_acceleration(r, m_sat):
 
     return a_earth + a_sun + a_moon + a_srp + a_thrust
 
-@app.post("/")
+@router.post('')
 def simulate_orbit(req: OrbitRequest):
     # 初期位置・速度
     r0 = geodetic_to_ecef(req.latitude, req.longitude, req.altitude)

@@ -1,8 +1,8 @@
 from fastapi import APIRouter
-from app.api.routes.parabolicMotion import router as parabolicMotion_router
-from app.api.routes.simpleHarmonizeMotion import router as simpleHarmonizeMotion_router
-from app.api.routes.kepler_router import router as kepler_router
-from app.api.routes.calc_satellite import router as satellite_router
+from app.routes.parabolicMotion import router as parabolicMotion_router
+from app.routes.simpleHarmonizeMotion import router as simpleHarmonizeMotion_router
+from app.routes.kepler_router import router as kepler_router
+from app.routes.calc_satellite import router as satellite_router
 # from app.api.routes.auth import router as auth
 
 
